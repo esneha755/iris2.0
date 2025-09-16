@@ -143,14 +143,48 @@ async def simulate_mission(mission_params: MissionParameters):
             "trajectory": trajectory_data  # This is the full path
         }, f, indent=2)
     
-    # 4. Print a sample to the terminal (first 3 points)
+    # 4. Print comprehensive mission details to the terminal
     print(f"\n🎯 Generated trajectory for {mission_id}")
-    print("📋 First 3 trajectory points:")
+    print("=" * 60)
+    
+    # Launch details
+    print("🚀 LAUNCH DETAILS:")
+    print(f"   Target: {mission_params.target_name}")
+    print(f"   Launch Epoch (JD): {mission_params.intercept_epoch}")
+    print(f"   Swarm Size: {mission_params.swarm_size} nanosatellites")
+    print(f"   Role Split: {mission_params.role_split}")
+    print(f"   Propulsion: {mission_params.propulsion_type}")
+    print(f"   Mission Duration: {time_of_flight.value:.1f} days")
+    print(f"   Delta-V Required: {total_delta_v} km/s")
+    print(f"   Fuel Required: {fuel_required} kg")
+    print(f"   Success Probability: {success_prob*100:.1f}%")
+    
+    # Trajectory dimensions analysis
+    positions_x = [point['x'] for point in trajectory_data]
+    positions_y = [point['y'] for point in trajectory_data]
+    positions_z = [point['z'] for point in trajectory_data]
+    distances = [point['distance'] for point in trajectory_data]
+    
+    print(f"\n📐 TRAJECTORY DIMENSIONS:")
+    print(f"   Total Points Generated: {len(trajectory_data)}")
+    print(f"   X-Range: {min(positions_x):,.0f} to {max(positions_x):,.0f} km")
+    print(f"   Y-Range: {min(positions_y):,.0f} to {max(positions_y):,.0f} km")
+    print(f"   Z-Range: {min(positions_z):,.0f} to {max(positions_z):,.0f} km")
+    print(f"   Distance Range: {min(distances):,.0f} to {max(distances):,.0f} km")
+    print(f"   Initial Distance: {distances[0]:,.0f} km")
+    print(f"   Final Distance: {distances[-1]:,.0f} km")
+    print(f"   Trajectory Span: {max(distances) - min(distances):,.0f} km")
+    
+    print(f"\n📋 FIRST 3 TRAJECTORY POINTS:")
     for i, point in enumerate(trajectory_data[:3]):
         print(f"   Point {i+1}: {point['datetime']}")
-        print(f"     Position: ({point['x']:.2f}, {point['y']:.2f}, {point['z']:.2f}) km")
+        print(f"     Position: ({point['x']:,.2f}, {point['y']:,.2f}, {point['z']:,.2f}) km")
         print(f"     Velocity: ({point['vx']:.3f}, {point['vy']:.3f}, {point['vz']:.3f}) km/s")
-        print(f"     Distance: {point['distance']:.3f} km")
+        print(f"     Distance: {point['distance']:,.3f} km")
+        if i < 2:
+            print()
+    
+    print("=" * 60)
     
     # 5. Return the results INCLUDING the trajectory
     return {
@@ -180,15 +214,35 @@ async def get_trajectory_data(mission_id: str, sample: int = 3):
     with open(filename, 'r') as f:
         data = json.load(f)
     
-    # Print to terminal
+    # Print comprehensive retrieval details to terminal
     print(f"\n📊 Retrieving trajectory: {mission_id}")
-    print(f"📈 Total points: {len(data['trajectory'])}")
-    print(f"🚀 Mission parameters: {data['parameters']['target_name']}")
-    print(f"⛽ Delta-V: {data['calculations']['delta_v']} km/s")
+    print("=" * 60)
+    print(f"📈 TRAJECTORY SUMMARY:")
+    print(f"   Total Points: {len(data['trajectory'])}")
+    print(f"   Target: {data['parameters']['target_name']}")
+    print(f"   Swarm Size: {data['parameters']['swarm_size']} nanosatellites")
+    print(f"   Mission Duration: {data['calculations']['time_of_flight']:.1f} days")
+    print(f"   Delta-V: {data['calculations']['delta_v']} km/s")
+    print(f"   Fuel Required: {data['calculations']['fuel_required']} kg")
+    
+    # Analyze trajectory dimensions
+    trajectory_points = data['trajectory']
+    positions_x = [point['x'] for point in trajectory_points]
+    positions_y = [point['y'] for point in trajectory_points]
+    positions_z = [point['z'] for point in trajectory_points]
+    distances = [point['distance'] for point in trajectory_points]
+    
+    print(f"\n� TRAJECTORY DIMENSIONS:")
+    print(f"   X-Range: {min(positions_x):,.0f} to {max(positions_x):,.0f} km")
+    print(f"   Y-Range: {min(positions_y):,.0f} to {max(positions_y):,.0f} km") 
+    print(f"   Z-Range: {min(positions_z):,.0f} to {max(positions_z):,.0f} km")
+    print(f"   Distance Range: {min(distances):,.0f} to {max(distances):,.0f} km")
+    print(f"   Trajectory Span: {max(distances) - min(distances):,.0f} km")
     
     # Show sample points
-    print(f"\n🔍 Sample of first {sample} points:")
+    print(f"\n🔍 SAMPLE OF FIRST {sample} POINTS:")
     for i, point in enumerate(data['trajectory'][:sample]):
-        print(f"   {i+1}. {point['datetime']} - Pos: ({point['x']:.2f}, {point['y']:.2f}, {point['z']:.2f}) km")
+        print(f"   {i+1}. {point['datetime']} - Pos: ({point['x']:,.2f}, {point['y']:,.2f}, {point['z']:,.2f}) km")
+    print("=" * 60)
     
     return data
