@@ -12,14 +12,13 @@ load_dotenv()
 
 router = APIRouter()
 
+
 # Get Gemini API key
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-if not GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY not set in environment. Add it to your .env file!")
-
-# Configure Gemini client
-genai.configure(api_key=GEMINI_API_KEY)
+# Configure Gemini client only if API key is available
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 
 class SimInput(BaseModel):
     swarm_count: int
@@ -46,17 +45,19 @@ def generate_ai_insights(metrics: dict):
     """
 
     try:
+        if not GEMINI_API_KEY:
+            return {
+                "id": "insights-fallback",
+                "insights": "[Fallback] AI unavailable. Keep delta-v optimized. Monitor fuel and trajectory."
+            }
+        
         model = genai.GenerativeModel("gemini-1.5-flash")
         response = model.generate_content(prompt)
-
-        # Extract text
         if response and response.candidates:
             text = response.candidates[0].content.parts[0].text.strip()
         else:
             text = "No insights generated."
-
         return {"id": f"insights-{random.randint(1000,9999)}", "insights": text}
-
     except Exception as e:
         return {
             "id": "insights-error",

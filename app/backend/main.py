@@ -9,14 +9,15 @@ from datetime import datetime
 import uvicorn
 from trajectory import generate_ai_insights
 from trajectory import router as trajectory_router
+from ai_trajectory import router as ai_trajectory_router
 from contextlib import asynccontextmanager
 
 app = FastAPI(title="IRIS Controls Backend")
 
-async def lifespan(app: FastAPI):
-    print("Started")
-    yield
-    print("Shutting down")
+# async def lifespan(app: FastAPI):
+#     print("Started")
+#     yield
+#     print("Shutting down")
 
 # --- CORS ---
 app.add_middleware(
@@ -74,6 +75,7 @@ def get_trajectory(
 
 # --- Include advanced simulation routes ---
 app.include_router(trajectory_router, prefix="/trajectory", tags=["trajectory"])
+app.include_router(ai_trajectory_router, prefix="/ai_trajectory", tags=["ai_trajectory"])
 
 @app.post("/trajectory/simulate")
 async def simulate_trajectory(params: dict):
@@ -97,8 +99,8 @@ async def simulate_trajectory(params: dict):
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        host = "127.0.0.1", 
+        host="127.0.0.1", 
         port=8000,
-        reload = True,
-        lifespan = "off"
+        reload=True
     )
+
